@@ -16,7 +16,7 @@ Each model takes in a microscopy cell image and predicts its malaria status. The
 - Visual feedback through progress bars
 - Processing timestamp
 
----
+-------
 
 ### 📊 Dataset
 
