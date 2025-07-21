@@ -100,13 +100,13 @@ def main():
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.markdown("#### 🧠 Model 1: Full Fine-tuning")
+            st.markdown("#### 🧠 Model 1: VIT Full Fine-tuning")
             st.success(f"Prediction: `{label_1}`")
             st.progress(conf_1)
             st.markdown(f"Confidence: **{conf_1 * 100:.2f}%**")
 
         with col2:
-            st.markdown("#### 🧠 Model 2: Head-only Fine-tuning")
+            st.markdown("#### 🧠 Model 2: VIT Head-only Fine-tuning")
             st.success(f"Prediction: `{label_2}`")
             st.progress(conf_2)
             st.markdown(f"Confidence: **{conf_2 * 100:.2f}%**")
