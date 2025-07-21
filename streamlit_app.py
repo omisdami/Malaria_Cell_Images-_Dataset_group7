@@ -5,6 +5,11 @@ from torchvision import transforms
 import timm
 import torch.nn.functional as F
 from datetime import datetime
+from timm.models.vision_transformer import VisionTransformer
+from torch.serialization import add_safe_globals
+
+# Allow full model unpickling for ViT
+add_safe_globals({'timm.models.vision_transformer.VisionTransformer': VisionTransformer})
 
 st.set_page_config(
     page_title="Malaria Cell Classifier",
@@ -38,10 +43,13 @@ st.markdown("""
 @st.cache_resource
 def load_model(model_name, path, is_full_model=False):
     if is_full_model:
-        model = torch.load(path, map_location=torch.device('cpu'))
+        # For full torch.save(model) checkpoint
+        model = torch.load(path, map_location=torch.device('cpu'), weights_only=False)
     else:
+        # For saved state_dict
         model = timm.create_model(model_name, pretrained=False, num_classes=2)
-        model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        state_dict = torch.load(path, map_location=torch.device('cpu'))
+        model.load_state_dict(state_dict)
     model.eval()
     return model
 
@@ -104,7 +112,7 @@ def main():
             st.markdown(f"Confidence: **{conf_2 * 100:.2f}%**")
 
         with col3:
-            st.markdown("#### 🧠 Model 3: Original vit_malaria.pth")
+            st.markdown("#### 🧠 Model 3: Custom vit_malaria.pth")
             st.success(f"Prediction: `{label_3}`")
             st.progress(conf_3)
             st.markdown(f"Confidence: **{conf_3 * 100:.2f}%**")
