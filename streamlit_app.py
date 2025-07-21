@@ -79,7 +79,7 @@ def main():
         with st.spinner("🔍 Classifying with multiple models..."):
             image_tensor = transform_image(image)
 
-            model_1 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria_full.pt', is_full_model=True)
+            model_1 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria_full.pth', is_full_model=True)
             model_2 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_head-only-training_malaria.pth', is_full_model=False)
             model_3 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria.pth', is_full_model=False)
 
