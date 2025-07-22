@@ -1,9 +1,13 @@
-streamlit
-torch
-torchvision
-timm
-Pillow
-tensorflow
+# Core App
+streamlit==1.33.0
 
+# PyTorch and Vision Models
+torch==2.2.0
+torchvision==0.17.0
+timm==1.0.17
 
+# Image Processing
+Pillow==10.2.0
 
+# TensorFlow for Keras Models
+tensorflow==2.16.1
