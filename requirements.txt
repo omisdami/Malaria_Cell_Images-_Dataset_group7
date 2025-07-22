@@ -1,7 +1,9 @@
 streamlit
+torch
 torchvision
+timm
 Pillow
 tensorflow
-numpy==1.24.4
-torch==2.0.1
-timm==0.6.12
+
+
+
