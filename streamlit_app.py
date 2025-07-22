@@ -7,6 +7,8 @@ import torch.nn.functional as F
 import numpy as np
 from datetime import datetime
 from tensorflow.keras.models import load_model as keras_load_model
+from torch.serialization import add_safe_globals
+from timm.models.vision_transformer import VisionTransformer
 
 # Page config
 st.set_page_config(
@@ -42,8 +44,11 @@ st.markdown("""
 # Load PyTorch ViT model
 @st.cache_resource
 def load_model(model_name, path, is_full_model=False):
+    
+    add_safe_globals({'timm.models.vision_transformer.VisionTransformer': VisionTransformer})
+
     if is_full_model:
-        model = torch.load(path, map_location=torch.device('cpu'))
+        model = torch.load(path, map_location=torch.device('cpu'), weights_only=False)  # ✅ explicitly allow full object
     else:
         model = timm.create_model(model_name, pretrained=False, num_classes=2)
         state_dict = torch.load(path, map_location=torch.device('cpu'))
