@@ -4,19 +4,18 @@ import torch
 from torchvision import transforms
 import timm
 import torch.nn.functional as F
+import numpy as np
 from datetime import datetime
-from timm.models.vision_transformer import VisionTransformer
-from torch.serialization import add_safe_globals
+from tensorflow.keras.models import load_model as keras_load_model
 
-# Allow full model unpickling for ViT
-add_safe_globals({'timm.models.vision_transformer.VisionTransformer': VisionTransformer})
-
+# Page config
 st.set_page_config(
     page_title="Malaria Cell Classifier",
     page_icon="🧪",
     layout="centered"
 )
 
+# Custom CSS
 st.markdown("""
     <style>
         body {
@@ -40,28 +39,42 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Load PyTorch ViT model
 @st.cache_resource
 def load_model(model_name, path, is_full_model=False):
     if is_full_model:
-        # For full torch.save(model) checkpoint
-        model = torch.load(path, map_location=torch.device('cpu'), weights_only=False)
+        model = torch.load(path, map_location=torch.device('cpu'))
     else:
-        # For saved state_dict
         model = timm.create_model(model_name, pretrained=False, num_classes=2)
         state_dict = torch.load(path, map_location=torch.device('cpu'))
         model.load_state_dict(state_dict)
     model.eval()
     return model
 
+# Transform for Torch and Keras
 def transform_image(image):
+    # PyTorch (ViT)
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    return transform(image).unsqueeze(0)
+    torch_img = transform(image).unsqueeze(0)
 
-def predict(model, image_tensor):
+    # Keras CNN (trained on 224x224)
+    keras_img_cnn = image.resize((224, 224))
+    keras_img_cnn = np.array(keras_img_cnn) / 255.0
+    keras_img_cnn = np.expand_dims(keras_img_cnn, axis=0)
+
+    # Keras VGG (trained on 130x130)
+    keras_img_vgg = image.resize((130, 130))
+    keras_img_vgg = np.array(keras_img_vgg) / 255.0
+    keras_img_vgg = np.expand_dims(keras_img_vgg, axis=0)
+
+    return torch_img, keras_img_cnn, keras_img_vgg
+
+# Predict using Torch ViT
+def predict_torch(model, image_tensor):
     class_names = ['Parasitized', 'Uninfected']
     with torch.no_grad():
         outputs = model(image_tensor)
@@ -69,11 +82,18 @@ def predict(model, image_tensor):
         confidence, predicted = torch.max(probs, 1)
     return class_names[predicted.item()], confidence.item()
 
+# Predict using Keras CNN/VGG16
+def predict_keras(model, keras_img):
+    pred = model.predict(keras_img)
+    confidence = float(np.max(pred))
+    label = 'Parasitized' if np.argmax(pred) == 0 else 'Uninfected'
+    return label, confidence
+
 def main():
     st.title("🧪 Malaria Cell Image Classification")
 
     st.markdown("""
-    Upload a cell image below. This app uses **three ViT models** to classify whether a red blood cell is:
+    Upload a cell image below. This app uses **five different models** to classify whether a red blood cell is:
     - **Parasitized** (infected)
     - **Uninfected** (healthy)
     """)
@@ -84,19 +104,25 @@ def main():
         image = Image.open(uploaded_file).convert("RGB")
         st.image(image, caption="🖼️ Uploaded Image", use_container_width=True)
 
-        with st.spinner("🔍 Classifying with multiple models..."):
-            image_tensor = transform_image(image)
+        with st.spinner("🔍 Classifying with 5 models..."):
+            torch_img, keras_img_cnn, keras_img_vgg = transform_image(image)
 
-            model_1 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria_full.pth', is_full_model=True)
-            model_2 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_head-only-training_malaria.pth', is_full_model=False)
-            model_3 = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria.pth', is_full_model=False)
+            # Load models
+            vit_full_model = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria_full.pth', is_full_model=True)
+            vit_head_model = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_head-only-training_malaria.pth')
+            cnn_model = keras_load_model('best_model.h5')
+            vgg_model = keras_load_model('best_vgg16_model.h5')
 
-            label_1, conf_1 = predict(model_1, image_tensor)
-            label_2, conf_2 = predict(model_2, image_tensor)
-            label_3, conf_3 = predict(model_3, image_tensor)
+            # Predictions
+            label_vit_full, conf_vit_full = predict_torch(vit_full_model, torch_img)
+            label_vit_head, conf_vit_head = predict_torch(vit_head_model, torch_img)
+            label_cnn, conf_cnn = predict_keras(cnn_model, keras_img_cnn)
+            label_vgg, conf_vgg = predict_keras(vgg_model, keras_img_vgg)
 
+        # Show results
         st.markdown("## 🔬 Model Results:")
 
+        st.subheader("🧠 Vision Transformer (ViT) Models")
         col1, col2, col3 = st.columns(3)
 
         with col1:
@@ -111,11 +137,17 @@ def main():
             st.progress(conf_2)
             st.markdown(f"Confidence: **{conf_2 * 100:.2f}%**")
 
-        with col3:
-            st.markdown("#### 🧠 Model 3: Custom vit_malaria.pth")
-            st.success(f"Prediction: `{label_3}`")
-            st.progress(conf_3)
-            st.markdown(f"Confidence: **{conf_3 * 100:.2f}%**")
+        with col4:
+            st.markdown("**CNN from Scratch**")
+            st.success(f"Prediction: `{label_cnn}`")
+            st.progress(conf_cnn)
+            st.markdown(f"Confidence: **{conf_cnn * 100:.2f}%**")
+
+        with col5:
+            st.markdown("**VGG16 Transfer Learning**")
+            st.success(f"Prediction: `{label_vgg}`")
+            st.progress(conf_vgg)
+            st.markdown(f"Confidence: **{conf_vgg * 100:.2f}%**")
 
         st.caption(f"🕒 Processed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
