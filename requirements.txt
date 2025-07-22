@@ -1,9 +1,7 @@
 streamlit
-numpy
-Pillow
-torch==2.1.2
+torch
 torchvision
 timm
-tensorflow==2.12.0
-tf-keras-vis==0.8.0
-
+Pillow
+tensorflow
+numpy==1.24.4
