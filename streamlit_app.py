@@ -102,7 +102,7 @@ def main():
 
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
-        st.image(image, caption="🖼️ Uploaded Image")
+        st.image(image, caption="🖼️ Uploaded Image", use_container_width=True)
 
         with st.spinner("🔍 Classifying with 5 models..."):
             torch_img, keras_img_cnn, keras_img_vgg = transform_image(image)
@@ -110,7 +110,7 @@ def main():
             # Load models
             vit_full_model = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_malaria_full.pth', is_full_model=True)
             vit_head_model = load_model('vit_tiny_patch16_224.augreg_in21k', 'vit_head-only-training_malaria.pth')
-            cnn_model = keras_load_model('best_model.h5')
+            cnn_model = keras_load_model('best_model.h5', compile=False)
             vgg_model = keras_load_model('best_vgg16_model.h5')
 
             # Predictions

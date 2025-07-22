@@ -110,6 +110,7 @@ File Structure:
 Malaria_Cell_Images-_Dataset_group7/
 │
 ├── .devcontainer/                   # VS Code container settings
+|── .streamlit/config.toml            
 ├── venv/                           # (virtual env, excluded from Git)
 ├── .gitignore
 ├── best_model.h5                   # CNN Keras model
