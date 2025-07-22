@@ -126,26 +126,29 @@ def main():
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.markdown("#### 🧠 Model 1: VIT Full Fine-tuning")
-            st.success(f"Prediction: `{label_1}`")
-            st.progress(conf_1)
-            st.markdown(f"Confidence: **{conf_1 * 100:.2f}%**")
+            st.markdown("**Full Fine-tuning**")
+            st.success(f"Prediction: {label_vit_full}")
+            st.progress(conf_vit_full)
+            st.markdown(f"Confidence: **{conf_vit_full * 100:.2f}%**")
 
         with col2:
-            st.markdown("#### 🧠 Model 2: VIT Head-only Fine-tuning")
-            st.success(f"Prediction: `{label_2}`")
-            st.progress(conf_2)
-            st.markdown(f"Confidence: **{conf_2 * 100:.2f}%**")
+            st.markdown("**Head-only Fine-tuning**")
+            st.success(f"Prediction: {label_vit_head}")
+            st.progress(conf_vit_head)
+            st.markdown(f"Confidence: **{conf_vit_head * 100:.2f}%**")
+
+        st.subheader("🧠 CNN-Based Models")
+        col4, col5 = st.columns(2)
 
         with col4:
             st.markdown("**CNN from Scratch**")
-            st.success(f"Prediction: `{label_cnn}`")
+            st.success(f"Prediction: {label_cnn}")
             st.progress(conf_cnn)
             st.markdown(f"Confidence: **{conf_cnn * 100:.2f}%**")
 
         with col5:
             st.markdown("**VGG16 Transfer Learning**")
-            st.success(f"Prediction: `{label_vgg}`")
+            st.success(f"Prediction: {label_vgg}")
             st.progress(conf_vgg)
             st.markdown(f"Confidence: **{conf_vgg * 100:.2f}%**")
 
