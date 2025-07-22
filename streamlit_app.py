@@ -102,7 +102,7 @@ def main():
 
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
-        st.image(image, caption="🖼️ Uploaded Image", use_container_width=True)
+        st.image(image, caption="🖼️ Uploaded Image")
 
         with st.spinner("🔍 Classifying with 5 models..."):
             torch_img, keras_img_cnn, keras_img_vgg = transform_image(image)
